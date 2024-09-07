@@ -31,11 +31,11 @@ public class UserEntity extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "role_id", nullable = false))
     private List<RoleEntity> roles = new ArrayList<>();
 
-//    @ManyToMany(mappedBy = "userEntities", fetch = FetchType.LAZY)
-//    List<BuildingEntity> buildingEntityList = new ArrayList<>();
+    @ManyToMany(mappedBy = "userEntities", fetch = FetchType.LAZY)
+    List<BuildingEntity> buildingEntityList = new ArrayList<>();
 
-    @OneToMany(mappedBy="userEntity", fetch = FetchType.LAZY)
-    private List<AssignBuildingEntity> assignBuildingEntities = new ArrayList<>();
+//    @OneToMany(mappedBy="userEntity", fetch = FetchType.LAZY)
+//    private List<AssignBuildingEntity> assignBuildingEntities = new ArrayList<>();
 //
 //    @OneToMany(mappedBy="users", fetch = FetchType.LAZY)
 //    private List<UserRoleEntity> userRoleEntities = new ArrayList<>();
@@ -93,11 +93,19 @@ public class UserEntity extends BaseEntity {
         this.email = email;
     }
 
-    public List<AssignBuildingEntity> getAssignBuildingEntities() {
-        return assignBuildingEntities;
+//    public List<AssignBuildingEntity> getAssignBuildingEntities() {
+//        return assignBuildingEntities;
+//    }
+//
+//    public void setAssignBuildingEntities(List<AssignBuildingEntity> assignBuildingEntities) {
+//        this.assignBuildingEntities = assignBuildingEntities;
+//    }
+
+    public List<BuildingEntity> getBuildingEntityList() {
+        return buildingEntityList;
     }
 
-    public void setAssignBuildingEntities(List<AssignBuildingEntity> assignBuildingEntities) {
-        this.assignBuildingEntities = assignBuildingEntities;
+    public void setBuildingEntityList(List<BuildingEntity> buildingEntityList) {
+        this.buildingEntityList = buildingEntityList;
     }
 }

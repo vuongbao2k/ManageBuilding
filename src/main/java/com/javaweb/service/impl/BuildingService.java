@@ -3,27 +3,24 @@ package com.javaweb.service.impl;
 import com.javaweb.builder.BuildingSearchBuilder;
 import com.javaweb.converter.BuildingSearchBuilderConverter;
 import com.javaweb.converter.BuildingSearchResponseConverter;
-import com.javaweb.entity.AssignBuildingEntity;
+import com.javaweb.converter.RentAreaConverter;
 import com.javaweb.entity.BuildingEntity;
 import com.javaweb.entity.UserEntity;
+import com.javaweb.model.dto.AssignmentBuildingDTO;
 import com.javaweb.model.dto.BuildingDTO;
-import com.javaweb.model.dto.BuildingDTOTest;
 import com.javaweb.model.request.BuildingSearchRequest;
 import com.javaweb.model.response.BuildingSearchResponse;
 import com.javaweb.model.response.ResponseDTO;
 import com.javaweb.model.response.StaffResponseDTO;
 import com.javaweb.repository.BuildingRepository;
 import com.javaweb.repository.UserRepository;
-import com.javaweb.service.IAssignmentBuildingService;
 import com.javaweb.service.IBuildingService;
 import com.javaweb.service.IRentAreaService;
-import com.javaweb.utils.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -41,7 +38,7 @@ public class BuildingService implements IBuildingService {
     @Autowired
     private IRentAreaService rentAreaService;
     @Autowired
-    private IAssignmentBuildingService assignmentBuildingService;
+    private RentAreaConverter rentAreaConverter;
 
     @Override
     public List<BuildingSearchResponse> findAll(BuildingSearchRequest buildingSearchRequest) {
@@ -59,18 +56,19 @@ public class BuildingService implements IBuildingService {
     public BuildingDTO addOrUpdateBuilding(BuildingDTO buildingDTO) {
         BuildingEntity buildingEntity = modelMapper.map(buildingDTO, BuildingEntity.class);
         buildingEntity.setType(String.join(",",buildingDTO.getTypeCode()));
+        buildingEntity.setRentarea(rentAreaConverter.toRentAreaEntityList(buildingDTO, buildingEntity));
         buildingRepository.save(buildingEntity);
-        buildingDTO.setId(buildingEntity.getId());
-        if(StringUtils.check(buildingDTO.getRentarea())) {
-            rentAreaService.addRentArea(buildingDTO);
-        }
+//        buildingDTO.setId(buildingEntity.getId());
+//        if(StringUtils.check(buildingDTO.getRentarea())) {
+//            rentAreaService.addRentArea(buildingDTO);
+//        }
         return buildingDTO;
     }
 
     @Override
     public void deleteBuildings(Long[] ids) {
-        rentAreaService.deleteByBuildings(ids);
-        assignmentBuildingService.deleteByBuildings(ids);
+//        rentAreaService.deleteByBuildings(ids);
+//        assignmentBuildingService.deleteByBuildings(ids);
 //        for(Long id : ids) buildingRepository.deleteById(id);
         buildingRepository.deleteByIdIn(ids);
     }
@@ -80,12 +78,12 @@ public class BuildingService implements IBuildingService {
     public ResponseDTO listStaff(Long buildingId) {
         BuildingEntity buildingEntity = buildingRepository.findById(buildingId).get();
         List<UserEntity> staff = userRepository.findByStatusAndRoles_Code(1,"STAFF");
-//        List<UserEntity> staffAssignment = buildingEntity.getUserEntities();
-        List<AssignBuildingEntity> assignBuildingEntityList = buildingEntity.getAssignBuildingEntities();
-        List<UserEntity> staffAssignment = new ArrayList<>();
-        for(AssignBuildingEntity assignBuildingEntity : assignBuildingEntityList) {
-            staffAssignment.add(assignBuildingEntity.getUserEntity());
-        }
+        List<UserEntity> staffAssignment = buildingEntity.getUserEntities();
+//        List<AssignBuildingEntity> assignBuildingEntityList = buildingEntity.getAssignBuildingEntities();
+//        List<UserEntity> staffAssignment = new ArrayList<>();
+//        for(AssignBuildingEntity assignBuildingEntity : assignBuildingEntityList) {
+//            staffAssignment.add(assignBuildingEntity.getUserEntity());
+//        }
         List<StaffResponseDTO> staffResponseDTOList = new ArrayList<StaffResponseDTO>();
         ResponseDTO responseDTO = new ResponseDTO();
         for(UserEntity it : staff){
@@ -103,5 +101,13 @@ public class BuildingService implements IBuildingService {
         responseDTO.setData(staffResponseDTOList);
         responseDTO.setMessage("success");
         return responseDTO;
+    }
+
+    @Override
+    public void addAssignmentBuildingEntity(AssignmentBuildingDTO assignmentBuildingDTO) {
+        BuildingEntity buildingEntity = buildingRepository.findById(assignmentBuildingDTO.getBuildingId()).get();
+        List<UserEntity> userEntities = userRepository.findByIdIn(assignmentBuildingDTO.getStaffs());
+        buildingEntity.setUserEntities(userEntities);
+        buildingRepository.save(buildingEntity);
     }
 }
